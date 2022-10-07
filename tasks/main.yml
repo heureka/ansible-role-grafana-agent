@@ -1,0 +1,66 @@
+---
+- name: Install unzip
+  package:
+    name: unzip
+    state: present
+
+- name: Download and unarchive Grafana Agent binary
+  unarchive:
+    src: "https://github.com/grafana/agent/releases/download/v{{ grafana_agent_version }}/agent-{{ grafana_agent_linux_architecture }}.zip"
+    dest: "{{ grafana_agent_binary_location }}"
+    remote_src: yes
+    mode: '0755'
+  notify:
+    - Restart Grafana Agent service
+
+- name: Create directory for Grafana Agent
+  file:
+    path: "{{ grafana_agent_config_location }}"
+    state: directory
+    mode: '0755'
+  notify:
+    - Restart Grafana Agent service
+
+- name: Template the config file for Grafana Agent
+  template:
+    src: "{{ grafana_agent_config_local_path }}"
+    dest: "{{ grafana_agent_config_location }}/agent-config.yaml"
+  notify:
+    - Restart Grafana Agent service
+
+- name: Add user 'grafana-agent'
+  user:
+    name: grafana-agent
+    create_home: no
+    shell: /bin/false
+  notify:
+    - Restart Grafana Agent service
+
+- name: Create runtime directories
+  file:
+    path: "{{ grafana_agent_runtime_directory }}"
+    state: directory
+    owner: grafana-agent
+  notify:
+    - Restart Grafana Agent service
+
+- name: Create service file for Grafana Agent
+  copy:
+    dest: "/etc/systemd/system/grafana-agent.service"
+    content: |
+      [Unit]
+      Description=Grafana Agent
+
+      [Service]
+      User=grafana-agent
+      ExecStart={{ grafana_agent_binary_location }}/agent-{{ grafana_agent_linux_architecture }} --config.file={{ grafana_agent_config_location }}/agent-config.yaml
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+  register: systemd_service
+  notify:
+    - Reload the systemd daemon
+    - Restart Grafana Agent service
+
+- meta: flush_handlers

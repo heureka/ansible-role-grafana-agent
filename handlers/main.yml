@@ -1,0 +1,11 @@
+---
+- name: Reload the systemd daemon
+  systemd:
+    daemon_reload: yes
+  when: systemd_service.changed
+
+- name: Restart Grafana Agent service
+  systemd:
+    name: grafana-agent
+    enabled: yes
+    state: restarted
