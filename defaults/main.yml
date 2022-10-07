@@ -5,6 +5,7 @@ grafana_agent_logging_endpoint: ""
 grafana_agent_tracing_endpoint: ""
 
 # optional
+grafana_agent_metrics_tenant_id: ""
 grafana_agent_version: 0.28.0
 grafana_agent_binary_location: "/usr/local/bin"
 grafana_agent_config_location: "/etc/grafana-agent"

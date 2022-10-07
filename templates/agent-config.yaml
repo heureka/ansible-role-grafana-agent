@@ -3,8 +3,6 @@ metrics:
   global:
     scrape_interval: 15s
     scrape_timeout: 10s
-    remote_write:
-      - url: "{{ grafana_agent_metrics_endpoint }}/api/v1/push"
   configs:
     - name: "{{ ansible_hostname }}"
       host_filter: true
@@ -14,6 +12,10 @@ metrics:
           static_configs:
             - targets:
               - localhost:9100
+      remote_write:
+        - url: "{{ grafana_agent_metrics_endpoint }}/api/v1/push"
+          headers:
+            X-Scope-OrgID: "{{ grafana_agent_metrics_tenant_id }}"
 logs:
   configs:
     - clients:
