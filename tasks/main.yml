@@ -33,8 +33,24 @@
     name: grafana-agent
     create_home: no
     shell: /bin/false
+    groups:
+      - adm
+      - systemd-journal
+  register: grafana_agent_user
   notify:
     - Restart Grafana Agent service
+
+- name: Make sure the acl package is installed
+  package:
+    name: acl
+    state: present
+  notify:
+    - Restart Grafana Agent service
+
+- name: Give grafana-agent permissions to /var/log
+  command:
+    cmd: "setfacl -R -m u:{{ grafana_agent_user.name }}:rX /var/log"
+  changed_when: false
 
 - name: Create runtime directories
   file:
